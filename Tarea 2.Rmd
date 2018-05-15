@@ -1,0 +1,61 @@
+---
+title: "Tarea 2"
+author: "María Noel Blanco"
+date: "9 de mayo de 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r, message=FALSE, warning=FALSE, results='asis', echo=FALSE}
+library(tidyverse)
+dato_emision<- gather(emisiones, key = fuente, value = emision, -AÑO)
+``` 
+
+##Ejercicio 1
+###Parte 1
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+
+dato_emision$fuente= as.factor(dato_emision$fuente)
+dato_emision$emision= as.numeric(dato_emision$emision)
+
+dato_emision%>%
+filter(fuente != "TOTAL", fuente != "S_c", fuente != "I_E", fuente != "NI")%>%
+group_by(fuente)%>%
+summarise(max_fuente= max(emision))%>%
+summarise(max_total= max(max_fuente))
+
+```
+La máxima emisión de CO2 proviene de Q_B (quema de biomasa).
+
+
+###Parte 2
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+dato_emision%>%
+filter(emision==88311)
+```
+La emisión máxima se dio en 2016
+
+###Parte 3
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+dato_emision%>%
+filter(!is.na("NI"), fuente != "TOTAL", fuente != "S_c", fuente != "I_E", fuente != "NI")%>%
+  group_by(fuente)%>%
+  summarise(media_em= mean(emision))%>%
+  arrange(desc(media_em))
+
+```
+
+Las 5 variables con mayor emisión media son: BI (Búnkers internacionales), I (industrial), T (transporte), Q_B (quema de biomasa), CE_SP (centrales eléctricas servicio público).
+
+###Parte 4
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+library(tidyverse)
+library(ggplot)
+
+
+  
