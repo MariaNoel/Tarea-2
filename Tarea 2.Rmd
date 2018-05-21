@@ -10,10 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r, message=FALSE, warning=FALSE, results='asis', echo=FALSE}
 library(tidyverse)
-dato_emision<- gather(emisiones, key = fuente, value = emision, -AÃ‘O)
+dato_emision<- gather(emisiones, key = fuente, value = emision, -AÑO)
 ``` 
 
 ##Ejercicio 1
+
 ###Parte 1
 
 ```{r, message=FALSE, warning=FALSE, echo=TRUE}
@@ -50,12 +51,146 @@ filter(!is.na("NI"), fuente != "TOTAL", fuente != "S_c", fuente != "I_E", fuente
 
 ```
 
-Las 5 variables con mayor emisiÃ³n media son: BI (BÃºnkers internacionales), I (industrial), T (transporte), Q_B (quema de biomasa), CE_SP (centrales elÃ©ctricas servicio pÃºblico).
+Las 5 variables con mayor emision media son: BI (Bunkers internacionales), I (industrial), T (transporte), Q_B (quema de biomasa), CE_SP (centrales electricas servicio publico).
 
 ###Parte 4
 ```{r, message=FALSE, warning=FALSE, echo=TRUE}
+Nota1= Fig1:"Aquí tenemos un gráfico que compara las 5 fuentes de mayor emisión de CO2 en el correr de los años (1990-2010). Se puede ver que la fuente que presenta un mayor crecimiento es la quema de biomasa."
+
+library(ggplot2)
+library(forcats)
+dato_emision$emision= as.numeric(dato_emision$emision)
+
+dato_emision%>%
+  na.omit()%>%
+  filter(fuente== c("Q_B", "T", "I", "BI", "CE_SP"))%>%
+  ggplot(aes(x=AÑO, y=emision, group=fuente, colour=fuente))+
+  geom_point()+
+  geom_line()+
+  labs(x= "Año", y= "Emisión", colour="Fuente")
+
+```
+
+###Parte 5
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+Nota2= Fig2:"El gráfico de cajas muestra las 5 fuentes con mayor emisión media entre 1990 y 2010. La quema de biomasa denota una notoria mayor dispersión que las demás fuentes."
+
+dato_emision$fuente= as.factor(dato_emision$fuente)
+dato_emision%>%
+  na.omit()%>%
+  filter(fuente== c("Q_B", "T", "I", "BI", "CE_SP"))%>%
+  ggplot(aes(x=fct_reorder(fuente, emision, .desc= TRUE), y=emision))+
+  geom_boxplot()+
+  labs(x="Fuentes con mayor media de emisión", y="Emisión de CO2")
+```
+
+###Parte 6
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+Nota2= Fig2:"En el gráfico se observa la evolución total de las emisiones de CO2 entre 1990 y 2010. Se pueden apreciar 4 picos en el gráfico."
+
+dato_emision%>%
+  na.omit()%>%
+  filter(fuente=="TOTAL")%>%
+  ggplot(aes(x=AÑO, y=emision))+
+  geom_point()+
+  geom_line()+
+  labs(x="Años", y="Emisión de CO2")
+```
+No pude lograr descargar el paquete ggpmisc por lo que los máximos no quedaron marcados en el gráfico.
+
+
+#Ejercicio 2
+
+```{r, message=FALSE, warning=FALSE, results='asis', echo=FALSE}
 library(tidyverse)
-library(ggplot)
+``` 
 
+###Parte 1
 
+¿Cual fue el prestador que aportó el importe más alto?
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+
+gastosmed%>%
+  filter(!is.na(Importe))%>%
+  group_by(Prestador)%>%
+  summarise(sum_imp=sum(Importe))%>%
+  arrange(desc(sum_imp))
+```
+
+CASMU es el prestador que más dinero aportó (46036154).
+
+###Parte 2
+
+¿Cuál es la edad promedio de los pacientes según su sexo?
   
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+
+gastosmed%>%
+  na.omit()%>%
+  group_by(Sexo)%>%
+  summarise(media.edad= mean(Edad_años))
+
+``` 
+Edad promedio mujeres: 66.6 años
+Edad promedio hombres: 63.6 años
+
+###Parte 3
+
+Relación entre el importe de la prestación y el departamento del cual proviene.
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+Nota3= Fig3:"El gráfico muestra para cada departamento del Uruguay, el total del importe de las prestaciones. Hay una clara diferencia entre Montevideo y el resto de los departamentos, siende este el de mayores prestaciones. Está secundado por Canelones, aunque muy por debajo del importe de la capital."
+
+gastosmed%>%
+  na.omit()%>%
+  group_by(Departamento_residencia, Importe)%>%
+  summarise(imp_total=sum(Importe))%>%
+  ggplot(aes(x=imp_total, y=Departamento_residencia))+
+           geom_point()+
+  scale_x_continuous(labels= c("0","25 millones", "50 millones", "75 millones", "100 millones"))+
+  labs( x="Importe en $", y=" Departamento")
+  
+``` 
+ 
+###Parte 4
+
+¿Hay diferencias entre las prestaciones de hombres y mujeres?
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+
+gastosmed%>%
+  filter(!is.na(Importe))%>%
+  group_by(Sexo)%>%
+  summarise(imp_sexo=sum(as.numeric(Importe)))
+  
+``` 
+
+Se puede ver que el importe total de los hombres supera al de las mujeres por $706.082.692
+
+###Parte 5
+  
+Cantidad de prestaciones que realiza cada tipo de prestador según el sexo de los pacientes.  
+  
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+Nota4= Fig4:"El gráfico muestra, para cada tipo de prestador(IAMC, ASSE, Seguro privado y Otro) el importe en pesos según el sexo de los pacientes. Se puede observar que no hay importantes diferencias entre hombres y mujeres a excepción de las Instituciones de Asistencia Médica Colectiva (IAMC), donde los hombres tienen mayores importes."
+
+gastosmed%>%
+  na.omit()%>%
+  group_by(Prestador_tipo, Sexo)%>%
+  summarise(imp_total=sum(as.numeric(Importe)))%>%
+  ggplot(aes(x=Prestador_tipo, y= imp_total))+
+  geom_point(alpha=1/3)+
+  facet_wrap(~Sexo)+
+  labs(x="Tipo de prestador", y="Importe total")+
+   scale_y_continuous(labels= c("0","500 millones", "1000 millones", "1500 millones", "w"))+
+  theme(axis.text.x=element_text(angle=30))
+  
+```                 
+  
+
+
+ 
+ 
+
